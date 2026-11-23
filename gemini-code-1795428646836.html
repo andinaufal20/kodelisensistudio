@@ -1,0 +1,64 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Admin Generator Lisensi — Cake & Bakery Preneur</title>
+  <style>
+    body { font-family: system-ui, sans-serif; background: #faf6f0; color: #2d2018; display: flex; justify-content: center; padding: 30px 16px; }
+    .box { background: #fff; padding: 24px; border-radius: 14px; max-width: 440px; width: 100%; box-shadow: 0 8px 24px rgba(0,0,0,0.08); border: 1px solid #eadfd4; }
+    h2 { margin-top: 0; color: #c26d3a; }
+    label { display: block; font-size: 13px; font-weight: 700; margin: 12px 0 4px; }
+    input { width: 100%; padding: 10px; border: 1px solid #d8c8b8; border-radius: 8px; box-sizing: border-box; font-size: 14px; }
+    button { width: 100%; margin-top: 16px; padding: 12px; background: #c26d3a; color: #fff; border: none; border-radius: 10px; font-size: 14px; font-weight: 700; cursor: pointer; }
+    button:hover { background: #9e5327; }
+    .result { margin-top: 16px; padding: 14px; background: #f3fbf6; border: 1px solid #b7e4c7; border-radius: 10px; display: none; text-align: center; }
+    .code { font-size: 20px; font-weight: 800; letter-spacing: 1px; color: #1c6b3d; margin: 6px 0; }
+  </style>
+</head>
+<body>
+  <div class="box">
+    <h2>🔑 Generator Lisensi AI</h2>
+    <label>URL Cloudflare Worker</label>
+    <input type="url" id="workerUrl" value="https://bakery-unified-worker.andi-naufal2002.workers.dev" />
+    <label>Password Admin (ADMIN_SECRET)</label>
+    <input type="password" id="adminSecret" placeholder="Masukkan ADMIN_SECRET kamu" />
+    <label>Nama Pembeli</label>
+    <input type="text" id="buyerName" placeholder="Contoh: Ibu Rina - Toko Kue" />
+    <label>Jatah Kredit AI</label>
+    <input type="number" id="credits" value="100" />
+    <button onclick="buatLisensi()">Buat Kode Lisensi</button>
+    <div class="result" id="resultBox">
+      <div style="font-size:12px;color:#555;">Kode Lisensi Berhasil Dibuat:</div>
+      <div class="code" id="licenseOut"></div>
+      <button style="margin-top:8px;padding:8px;background:#247a4b;" onclick="salinKode()">📋 Salin Kode</button>
+    </div>
+  </div>
+  <script>
+    async function buatLisensi() {
+      const worker = document.getElementById('workerUrl').value.trim().replace(/\/$/, '');
+      const secret = document.getElementById('adminSecret').value.trim();
+      const buyerName = document.getElementById('buyerName').value.trim() || 'Pembeli';
+      const credits = Number(document.getElementById('credits').value) || 100;
+      if (!secret) return alert('Isi ADMIN_SECRET dulu!');
+      try {
+        const res = await fetch(`${worker}/admin/create-license`, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json', 'X-Admin-Secret': secret },
+          body: JSON.stringify({ buyerName, credits })
+        });
+        const data = await res.json();
+        if (!res.ok) return alert('Gagal: ' + (data.error || 'Cek ADMIN_SECRET'));
+        document.getElementById('licenseOut').textContent = data.licenseKey;
+        document.getElementById('resultBox').style.display = 'block';
+      } catch (e) {
+        alert('Gagal menghubungi Worker. Cek koneksi internet.');
+      }
+    }
+    function salinKode() {
+      navigator.clipboard.writeText(document.getElementById('licenseOut').textContent);
+      alert('Kode lisensi disalin!');
+    }
+  </script>
+</body>
+</html>
